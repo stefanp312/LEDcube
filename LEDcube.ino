@@ -1,8 +1,8 @@
 
 //THE CONSTANT SIZE OF THE CUBE
-const int CUBE_SIZE_X = 2;
-const int CUBE_SIZE_Y = 2;
-const int CUBE_SIZE_Z = 2;
+const int CUBE_SIZE_X = 4;
+const int CUBE_SIZE_Y = 4;
+const int CUBE_SIZE_Z = 4;
 
 //The 3D array that is mapped to the cube
 bool dataSource[CUBE_SIZE_X][CUBE_SIZE_Y][CUBE_SIZE_Z];
@@ -20,16 +20,18 @@ const int dataPin = 11;
 //ground for layer one and ground for layer 2
 const int ground1 = 2;
 const int ground2 = 3;
+const int ground3 = 4;
+const int ground4 = 5;
 
-const int tester = 5;
+const int tester = 6;
 
 
 //holder for infromation you're going to pass to shifting function
 word data = 0;
 
 //The constants used to map the array to the cube
-const int sizeOfCubeFace = 4;
-const int numberOfLayers = 2;
+const int sizeOfCubeFace = 16;
+const int numberOfLayers = 4;
 
 //Needs to store a 16 bit number
 unsigned int ledAddress[sizeOfCubeFace];
@@ -67,6 +69,8 @@ void setup() {
   //These are all the pins being used to control the ground to control layers
   pinMode(ground1, OUTPUT);
   pinMode(ground2, OUTPUT);
+  pinMode(ground3, OUTPUT);
+  pinMode(ground4, OUTPUT);
 
 }
 
@@ -74,7 +78,7 @@ void loop() {
   //update the function being dispayed by the cube
   //update the cube to be synced to the datasource
 
-  applyPattern(1);
+  applyPattern(0);
   updateCubeWithDataSource();
   counter++;
   if (counter > 1000) {
@@ -108,13 +112,66 @@ void printDataLayer(int layer) {
 void applyPattern(int pattern) {
   switch (pattern) {
     case 0:
-      testPattern();
+      //functionOne();
+      //functionTwo();
+      powerUp();
       break;
     case 1:
       simpleBounce();
       break;
     default:
       break;
+  }
+}
+
+void makeSquareOnDataSourceLayer(int x1, int x2, int y1, int y2, int z){
+  for (int i = x1; i < x2; i++) {
+    for (int j = y1; j < y2; j++) {
+      dataSource[i][j][z] = 1;
+    }    
+  }
+}
+void functionALL() {
+  writeValueToEntireDataSource(1);
+}
+void powerUp() {
+  if (counter==0){
+    writeValueToEntireDataSource(1);
+  }
+  if (counter==500){
+    writeValueToEntireDataSource(0);
+    makeSquareOnDataSourceLayer(0,CUBE_SIZE_X,0,CUBE_SIZE_Y,2);
+    makeSquareOnDataSourceLayer(0,CUBE_SIZE_X,0,CUBE_SIZE_Y,1);
+        makeSquareOnDataSourceLayer(0,CUBE_SIZE_X,0,CUBE_SIZE_Y,0);
+  }
+  
+}
+void functionOne() {
+  if (counter==0){
+    writeValueToEntireDataSource(0);
+    makeSquareOnDataSourceLayer(0,CUBE_SIZE_X,0,CUBE_SIZE_Y,0);
+  }
+  if (counter==500){
+    writeValueToEntireDataSource(0);
+    makeSquareOnDataSourceLayer(0,CUBE_SIZE_X,0,CUBE_SIZE_Y,1);
+  }
+}
+void functionTwo() {
+  if (counter==0){
+    writeValueToEntireDataSource(0);
+    makeSquareOnDataSourceLayer(0,CUBE_SIZE_X,0,1,0);
+  }
+  if (counter==300){
+    writeValueToEntireDataSource(0);
+    makeSquareOnDataSourceLayer(0,CUBE_SIZE_X,0,1,1);
+  }
+  if (counter==600){
+    writeValueToEntireDataSource(0);
+    makeSquareOnDataSourceLayer(0,1,0,CUBE_SIZE_X,1);
+  }
+  if (counter==900){
+    writeValueToEntireDataSource(0);
+    makeSquareOnDataSourceLayer(0,1,0,CUBE_SIZE_X,0);
   }
 }
 
@@ -147,6 +204,11 @@ void testPattern() {
 
 }
 
+void raiseAllGrounds(){
+  for (int var = 0; var < numberOfLayers; var++) {
+    digitalWrite(layerAddress[var], 1);
+  }
+}
 //This function write data to a chosen layer of the cube
 void writeLayerToCube(int layer) {
   //First we need to drop the latch and clock low
@@ -154,7 +216,6 @@ void writeLayerToCube(int layer) {
   //Putting the clock low makes sure that no data is accidentally written to the register.
   digitalWrite(latchPin, 0);
   digitalWrite(clockPin, 0);
-  
   
   //Write a face of data to the cube
   shiftOut(dataPin, clockPin, MSBFIRST, data);
@@ -164,29 +225,13 @@ void writeLayerToCube(int layer) {
   //Next we need to select the correct layer by picking the write ground
   //Match the layer value with the correct pin stored in the layerAddress array
   if (data!=0){
-    for (int var = 0; var < numberOfLayers; var++) {
-      if (var == layer) {
-        digitalWrite(layerAddress[var], 0);
-      }
-      else {
-        digitalWrite(layerAddress[var], 1);
-      }
-    }
+    raiseAllGrounds();
+    digitalWrite(layerAddress[layer], 0);
   }
   //Clear the data
-  Serial.println(data);
+  Serial.println(digitalRead(tester));
   data = 0;
 }
-
-
-//basically this needs to happen
-/*
-  we have cube which we read from. and set lights on or off based on those values
-  we modify this cube with math.
-  we update the led cube from the matrix cube.
-  We needs to amake sure that the cube is synced to the data source in order to minimize the flickering of the lights when everything is being typed and use an extrernal timer in order to do the pattern
-  because using the delay function in the mian program loop stops the updating and if we are no updating constanly it looks like on of them turns off.
-*/
 
 void updateCubeWithDataSource() {
   int countForMe = 0;
@@ -211,7 +256,6 @@ void updateCubeWithDataSource() {
     //Serial.println("_________");
     //printDataLayer(k);
   }
-
 }
 
 ///Helper functions
@@ -220,8 +264,10 @@ void makeData() {
     ledAddress[i] = 1 << i;
   }
   //Set up the ground array to correct pins only hard coding needed
-  layerAddress[0] = 3;
-  layerAddress[1] = 2;
+  layerAddress[0] = 2;
+  layerAddress[1] = 3;
+  layerAddress[2] = 4;
+  layerAddress[3] = 5;
 
 }
 
