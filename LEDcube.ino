@@ -77,8 +77,8 @@ void loop() {
   //update the function being dispayed by the cube
   //update the cube to be synced to the datasource
 
-  applyPattern(1);
-  //updateCubeWithDataSource();
+  applyPattern(0);
+  updateCubeWithDataSource();
   counter++;
   if (counter > 1000) {
     counter = 0;
@@ -87,7 +87,7 @@ void loop() {
 
 
 //This goes through every value in the matrix and writes a value.
-void writeValueToEntireDataSource(int value) {
+void writeValueToEntireDataSource(bool value) {
   for (int i = 0; i < CUBE_SIZE; i++) {
     for (int j = 0; j < CUBE_SIZE; j++) {
       for (int k = 0; k < CUBE_SIZE; k++) {
@@ -123,33 +123,60 @@ void applyPattern(int pattern) {
   }
 }
 
-void makeSquareOnDataSourceLayer(int x1, int x2, int y1, int y2, int z){
+void makeSquareOnDataSourceLayer(int x1, int x2, int y1, int y2, int z, int value){
   for (int i = x1; i < x2; i++) {
     for (int j = y1; j < y2; j++) {
-      dataSource[i][j][z] = 1;
+      dataSource[i][j][z] = value;
     }    
   }
 }
 void functionALL() {
   writeValueToEntireDataSource(1);
 }
+
+//Unoptimized pattern
 void powerUp() {
   if (counter==0){
-    writeValueToEntireDataSource(1);
-  }
-  if (counter==500){
     writeValueToEntireDataSource(0);
-    makeSquareOnDataSourceLayer(0,CUBE_SIZE,0,CUBE_SIZE,2);
-    makeSquareOnDataSourceLayer(0,CUBE_SIZE,0,CUBE_SIZE,1);
-        makeSquareOnDataSourceLayer(0,CUBE_SIZE,0,CUBE_SIZE,0);
+    makeSquareOnDataSourceLayer(0,CUBE_SIZE,0,CUBE_SIZE,0,1);
   }
-  
+  if (counter==150){
+    writeValueToEntireDataSource(0);
+    makeSquareOnDataSourceLayer(0,CUBE_SIZE,0,CUBE_SIZE,1,1);
+  }
+  if (counter==300){
+    writeValueToEntireDataSource(0);
+    makeSquareOnDataSourceLayer(0,CUBE_SIZE,0,CUBE_SIZE,2,1);
+  }
+  if (counter==450){
+    writeValueToEntireDataSource(0);
+    makeSquareOnDataSourceLayer(0,CUBE_SIZE,0,CUBE_SIZE,3,1);
+  }
+  if (counter==650){
+    writeValueToEntireDataSource(0);
+    makeSquareOnDataSourceLayer(0,CUBE_SIZE,0,CUBE_SIZE,2,1);
+  }
+  if (counter==800){
+    writeValueToEntireDataSource(0);
+    makeSquareOnDataSourceLayer(0,CUBE_SIZE,0,CUBE_SIZE,1,1);
+  }
+  if (counter==950){
+    writeValueToEntireDataSource(0);
+    makeSquareOnDataSourceLayer(0,CUBE_SIZE,0,CUBE_SIZE,0,1);
+  }  
 }
 
 void testPattern() {
-    data1=1;
-    data2=8;
-    writeLayerToCube(0);
+
+    dataSource[0][0][0]=1;//1
+    dataSource[1][0][1]=1;//2
+    dataSource[2][0][2]=1;//128
+    dataSource[3][0][3]=1;//128
+    
+    dataSource[0][0][3]=1;//128
+    dataSource[1][0][2]=1;//128
+    dataSource[2][0][1]=1;//128
+    dataSource[3][0][0]=1;//128
 }
 
 void raiseAllGrounds(){
@@ -178,29 +205,26 @@ void writeLayerToCube(int layer) {
     digitalWrite(layerAddress[layer], 0);
   }
   //Clear the data
-  Serial.println(data2);
-  Serial.println(data1);
   data1 = 0;
   data2 = 0;
 }
 
 void updateCubeWithDataSource() {
   int countForMe = 0;
-  for (int k = 0; k < CUBE_SIZE_Z; k++) {
-    for (int i = 0; i < CUBE_SIZE_X; i++) {
-      for (int j = 0; j < CUBE_SIZE_Y; j++) {
+  for (int k = 0; k < CUBE_SIZE; k++) {
+    for (int i = 0; i < CUBE_SIZE; i++) {
+      for (int j = 0; j < CUBE_SIZE; j++) {
         //This loop will go through every value of the dataSource
         //Check if the value needs to be written to
         if (dataSource[i][j][k] == 1) {
           //If it needs to be written to the cube add it to the data
           //We can add it to the data because each LED is mapped to a power of 2 and we are essentially doing an 'or' operation on what to light up
-          if (countForMe<8){
-            data1 = data1 + ledAddress[countForMe];  
+          //The check to j is to decicide which byte to write to
+          if (j<2){
+            data1 = data1 + ledAddress[i][j];
           }else{
-            data2 = data2 + ledAddress[8-countForMe];            
+            data2 = data2 + ledAddress[i][j];
           }
-          //Serial.println("This data got added");
-          //Serial.print(ledAddress[countForMe]);
         }
         countForMe++;
       }
@@ -208,31 +232,34 @@ void updateCubeWithDataSource() {
     countForMe=0;
     //At this point we have gone through one entire layer and can write that layer to the cube
     writeLayerToCube(k);
-    //Serial.println("_________");
+    //Serial.print("_________");
+    //Serial.println(k);
     //printDataLayer(k);
   }
 }
 
 ///Helper functions
 void makeData() {
-/*  for (int i = sizeOfCubeFace/2; i >= 0; i--) {
-    ledAddress[i] = 1 << i;
-  }
-*/
+  
+  //First Byte
   ledAddress[0][0] = 1;
-  ledAddress[1][0] = 2;
-  ledAddress[2][0] = 4;
+  ledAddress[1][0] = 4; //Wiring mistake
+  ledAddress[2][0] = 2; //These are flipped in wires
   ledAddress[3][0] = 8;
   ledAddress[0][1] = 128;
   ledAddress[1][1] = 64;
   ledAddress[2][1] = 32;
   ledAddress[3][1] = 16;
-  //second byte
+  
+  //Second Byte
   ledAddress[0][2] = 8;
   ledAddress[1][2] = 4;
   ledAddress[2][2] = 2;
   ledAddress[3][2] = 1;
-
+  ledAddress[0][3] = 128;
+  ledAddress[1][3] = 64;
+  ledAddress[2][3] = 32;
+  ledAddress[3][3] = 16;
   
   //Set up the ground array to correct pins only hard coding needed
   layerAddress[0] = 2;
