@@ -1,11 +1,10 @@
 
 //THE CONSTANT SIZE OF THE CUBE
-const int CUBE_SIZE_X = 4;
-const int CUBE_SIZE_Y = 4;
-const int CUBE_SIZE_Z = 4;
+const int CUBE_SIZE = 4;
+
 
 //The 3D array that is mapped to the cube
-bool dataSource[CUBE_SIZE_X][CUBE_SIZE_Y][CUBE_SIZE_Z];
+bool dataSource[CUBE_SIZE][CUBE_SIZE][CUBE_SIZE];
 
 //Stupid variable that counts
 int counter;
@@ -27,14 +26,14 @@ const int tester = 6;
 
 
 //holder for infromation you're going to pass to shifting function
-word data = 0;
+byte data1 = 0;
+byte data2 = 0;
 
 //The constants used to map the array to the cube
-const int sizeOfCubeFace = 16;
-const int numberOfLayers = 4;
+const int numberOfLayers = CUBE_SIZE;
 
 //Needs to store a 16 bit number
-unsigned int ledAddress[sizeOfCubeFace];
+unsigned int ledAddress[CUBE_SIZE][CUBE_SIZE];
 int layerAddress[numberOfLayers];
 
 
@@ -78,8 +77,8 @@ void loop() {
   //update the function being dispayed by the cube
   //update the cube to be synced to the datasource
 
-  applyPattern(0);
-  updateCubeWithDataSource();
+  applyPattern(1);
+  //updateCubeWithDataSource();
   counter++;
   if (counter > 1000) {
     counter = 0;
@@ -89,9 +88,9 @@ void loop() {
 
 //This goes through every value in the matrix and writes a value.
 void writeValueToEntireDataSource(int value) {
-  for (int i = 0; i < CUBE_SIZE_X; i++) {
-    for (int j = 0; j < CUBE_SIZE_Y; j++) {
-      for (int k = 0; k < CUBE_SIZE_Z; k++) {
+  for (int i = 0; i < CUBE_SIZE; i++) {
+    for (int j = 0; j < CUBE_SIZE; j++) {
+      for (int k = 0; k < CUBE_SIZE; k++) {
         dataSource[i][j][k] = value;
       }
     }
@@ -100,8 +99,8 @@ void writeValueToEntireDataSource(int value) {
 
 //This prints one layer of the cube to the serial monitor
 void printDataLayer(int layer) {
-  for (int i = 0; i < CUBE_SIZE_X; i++) {
-    for (int j = 0; j < CUBE_SIZE_Y; j++) {
+  for (int i = 0; i < CUBE_SIZE; i++) {
+    for (int j = 0; j < CUBE_SIZE; j++) {
       Serial.print(dataSource[i][j][layer]);
     }
     Serial.println("");
@@ -117,7 +116,7 @@ void applyPattern(int pattern) {
       powerUp();
       break;
     case 1:
-      simpleBounce();
+      testPattern();
       break;
     default:
       break;
@@ -140,68 +139,17 @@ void powerUp() {
   }
   if (counter==500){
     writeValueToEntireDataSource(0);
-    makeSquareOnDataSourceLayer(0,CUBE_SIZE_X,0,CUBE_SIZE_Y,2);
-    makeSquareOnDataSourceLayer(0,CUBE_SIZE_X,0,CUBE_SIZE_Y,1);
-        makeSquareOnDataSourceLayer(0,CUBE_SIZE_X,0,CUBE_SIZE_Y,0);
+    makeSquareOnDataSourceLayer(0,CUBE_SIZE,0,CUBE_SIZE,2);
+    makeSquareOnDataSourceLayer(0,CUBE_SIZE,0,CUBE_SIZE,1);
+        makeSquareOnDataSourceLayer(0,CUBE_SIZE,0,CUBE_SIZE,0);
   }
   
 }
-void functionOne() {
-  if (counter==0){
-    writeValueToEntireDataSource(0);
-    makeSquareOnDataSourceLayer(0,CUBE_SIZE_X,0,CUBE_SIZE_Y,0);
-  }
-  if (counter==500){
-    writeValueToEntireDataSource(0);
-    makeSquareOnDataSourceLayer(0,CUBE_SIZE_X,0,CUBE_SIZE_Y,1);
-  }
-}
-void functionTwo() {
-  if (counter==0){
-    writeValueToEntireDataSource(0);
-    makeSquareOnDataSourceLayer(0,CUBE_SIZE_X,0,1,0);
-  }
-  if (counter==300){
-    writeValueToEntireDataSource(0);
-    makeSquareOnDataSourceLayer(0,CUBE_SIZE_X,0,1,1);
-  }
-  if (counter==600){
-    writeValueToEntireDataSource(0);
-    makeSquareOnDataSourceLayer(0,1,0,CUBE_SIZE_X,1);
-  }
-  if (counter==900){
-    writeValueToEntireDataSource(0);
-    makeSquareOnDataSourceLayer(0,1,0,CUBE_SIZE_X,0);
-  }
-}
-
-void simpleBounce() {
-    //
-    if (counter==0){
-      writeValueToEntireDataSource(0);
-      dataSource[0][0][0] = 1;
-      dataSource[1][0][1] = 1;  
-    }
-    if (counter==300){
-      writeValueToEntireDataSource(0);
-      dataSource[1][0][0] = 1;
-      dataSource[0][1][1] = 1;  
-    }
-    if (counter==500){
-      writeValueToEntireDataSource(0);
-      dataSource[0][1][0] = 1;
-      dataSource[1][1][1] = 1;  
-    }
-    if (counter==700){
-      writeValueToEntireDataSource(0);
-      dataSource[1][1][0] = 1;
-      dataSource[0][0][1] = 1;  
-    }
-    
-}
 
 void testPattern() {
-
+    data1=1;
+    data2=8;
+    writeLayerToCube(0);
 }
 
 void raiseAllGrounds(){
@@ -218,19 +166,22 @@ void writeLayerToCube(int layer) {
   digitalWrite(clockPin, 0);
   
   //Write a face of data to the cube
-  shiftOut(dataPin, clockPin, MSBFIRST, data);
+  shiftOut(dataPin, clockPin, MSBFIRST, data2);
+  shiftOut(dataPin, clockPin, MSBFIRST, data1);
   //Close the latch so it can update
   digitalWrite(latchPin, 1);
   
-  //Next we need to select the correct layer by picking the write ground
+  //Next we need to select the correct layer by picking the right ground
   //Match the layer value with the correct pin stored in the layerAddress array
-  if (data!=0){
+  if (data1!=0 || data2!=0){
     raiseAllGrounds();
     digitalWrite(layerAddress[layer], 0);
   }
   //Clear the data
-  Serial.println(digitalRead(tester));
-  data = 0;
+  Serial.println(data2);
+  Serial.println(data1);
+  data1 = 0;
+  data2 = 0;
 }
 
 void updateCubeWithDataSource() {
@@ -240,10 +191,14 @@ void updateCubeWithDataSource() {
       for (int j = 0; j < CUBE_SIZE_Y; j++) {
         //This loop will go through every value of the dataSource
         //Check if the value needs to be written to
-        if (dataSource[j][i][k] == 1) {
+        if (dataSource[i][j][k] == 1) {
           //If it needs to be written to the cube add it to the data
           //We can add it to the data because each LED is mapped to a power of 2 and we are essentially doing an 'or' operation on what to light up
-          data = data + ledAddress[countForMe];
+          if (countForMe<8){
+            data1 = data1 + ledAddress[countForMe];  
+          }else{
+            data2 = data2 + ledAddress[8-countForMe];            
+          }
           //Serial.println("This data got added");
           //Serial.print(ledAddress[countForMe]);
         }
@@ -260,9 +215,25 @@ void updateCubeWithDataSource() {
 
 ///Helper functions
 void makeData() {
-  for (int i = 0; i < sizeOfCubeFace; i++) {
+/*  for (int i = sizeOfCubeFace/2; i >= 0; i--) {
     ledAddress[i] = 1 << i;
   }
+*/
+  ledAddress[0][0] = 1;
+  ledAddress[1][0] = 2;
+  ledAddress[2][0] = 4;
+  ledAddress[3][0] = 8;
+  ledAddress[0][1] = 128;
+  ledAddress[1][1] = 64;
+  ledAddress[2][1] = 32;
+  ledAddress[3][1] = 16;
+  //second byte
+  ledAddress[0][2] = 8;
+  ledAddress[1][2] = 4;
+  ledAddress[2][2] = 2;
+  ledAddress[3][2] = 1;
+
+  
   //Set up the ground array to correct pins only hard coding needed
   layerAddress[0] = 2;
   layerAddress[1] = 3;
