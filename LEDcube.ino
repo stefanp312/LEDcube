@@ -22,19 +22,13 @@ const int ground2 = 3;
 const int ground3 = 4;
 const int ground4 = 5;
 
-const int tester = 6;
-
-
-//holder for infromation you're going to pass to shifting function
+//holders for infromation you're going to pass to shifting function
 byte data1 = 0;
 byte data2 = 0;
 
-//The constants used to map the array to the cube
-const int numberOfLayers = CUBE_SIZE;
-
 //Needs to store a 16 bit number
 unsigned int ledAddress[CUBE_SIZE][CUBE_SIZE];
-int layerAddress[numberOfLayers];
+int layerAddress[CUBE_SIZE];
 
 
 
@@ -63,8 +57,6 @@ void setup() {
   //This is the pin that data is fed to the shift regsisters
   pinMode(dataPin, OUTPUT);
 
-  pinMode(tester,INPUT);
-
   //These are all the pins being used to control the ground to control layers
   pinMode(ground1, OUTPUT);
   pinMode(ground2, OUTPUT);
@@ -76,13 +68,9 @@ void setup() {
 void loop() {
   //update the function being dispayed by the cube
   //update the cube to be synced to the datasource
-
   applyPattern(0);
   updateCubeWithDataSource();
   counter++;
-  if (counter > 1000) {
-    counter = 0;
-  }
 }
 
 
@@ -123,6 +111,7 @@ void applyPattern(int pattern) {
   }
 }
 
+//This makes a square from the two ranges passed in on the layer provided with the value passed in
 void makeSquareOnDataSourceLayer(int x1, int x2, int y1, int y2, int z, int value){
   for (int i = x1; i < x2; i++) {
     for (int j = y1; j < y2; j++) {
@@ -134,53 +123,68 @@ void functionALL() {
   writeValueToEntireDataSource(1);
 }
 
+//This function is responsible for changing the state of the current animation that is being displayed on the screen
+//It does this by determining if a set amount of time has occured and incrementing a global counter variable
+void stateChange(int timeInMilliSeconds){
+  if (millis()% timeInMilliSeconds){
+    //increment the state variable
+    counter++;
+  }
+}
+
 //Unoptimized pattern
 void powerUp() {
+  //This changes the state every 300 milliseconds AKA inc counter every 300 milliseconds
+  stateChange(300);
+  
   if (counter==0){
     writeValueToEntireDataSource(0);
     makeSquareOnDataSourceLayer(0,CUBE_SIZE,0,CUBE_SIZE,0,1);
   }
-  if (counter==150){
+  if (counter==1){
     writeValueToEntireDataSource(0);
     makeSquareOnDataSourceLayer(0,CUBE_SIZE,0,CUBE_SIZE,1,1);
   }
-  if (counter==300){
+  if (counter==2){
     writeValueToEntireDataSource(0);
     makeSquareOnDataSourceLayer(0,CUBE_SIZE,0,CUBE_SIZE,2,1);
   }
-  if (counter==450){
+  if (counter==3){
     writeValueToEntireDataSource(0);
     makeSquareOnDataSourceLayer(0,CUBE_SIZE,0,CUBE_SIZE,3,1);
   }
-  if (counter==650){
+  if (counter==4){
     writeValueToEntireDataSource(0);
     makeSquareOnDataSourceLayer(0,CUBE_SIZE,0,CUBE_SIZE,2,1);
   }
-  if (counter==800){
+  if (counter==5){
     writeValueToEntireDataSource(0);
     makeSquareOnDataSourceLayer(0,CUBE_SIZE,0,CUBE_SIZE,1,1);
   }
-  if (counter==950){
+  if (counter==6){
     writeValueToEntireDataSource(0);
     makeSquareOnDataSourceLayer(0,CUBE_SIZE,0,CUBE_SIZE,0,1);
+    
+    //In your last state reset that state counter
+    counter = 0;
   }  
 }
 
 void testPattern() {
 
-    dataSource[0][0][0]=1;//1
-    dataSource[1][0][1]=1;//2
-    dataSource[2][0][2]=1;//128
-    dataSource[3][0][3]=1;//128
+    dataSource[0][0][0]=1;
+    dataSource[1][0][1]=1;
+    dataSource[2][0][2]=1;
+    dataSource[3][0][3]=1;
     
-    dataSource[0][0][3]=1;//128
-    dataSource[1][0][2]=1;//128
-    dataSource[2][0][1]=1;//128
-    dataSource[3][0][0]=1;//128
+    dataSource[0][0][3]=1;
+    dataSource[1][0][2]=1;
+    dataSource[2][0][1]=1;
+    dataSource[3][0][0]=1;
 }
 
 void raiseAllGrounds(){
-  for (int var = 0; var < numberOfLayers; var++) {
+  for (int var = 0; var < CUBE_SIZE; var++) {
     digitalWrite(layerAddress[var], 1);
   }
 }
@@ -209,6 +213,7 @@ void writeLayerToCube(int layer) {
   data2 = 0;
 }
 
+//This is the main function that ensures that the LED cube is kept updated with the datasource
 void updateCubeWithDataSource() {
   int countForMe = 0;
   for (int k = 0; k < CUBE_SIZE; k++) {
@@ -226,15 +231,10 @@ void updateCubeWithDataSource() {
             data2 = data2 + ledAddress[i][j];
           }
         }
-        countForMe++;
       }
     }
-    countForMe=0;
     //At this point we have gone through one entire layer and can write that layer to the cube
     writeLayerToCube(k);
-    //Serial.print("_________");
-    //Serial.println(k);
-    //printDataLayer(k);
   }
 }
 
