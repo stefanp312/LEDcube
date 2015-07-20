@@ -39,17 +39,10 @@ void setup() {
   
   //Serial monitor for debug
   Serial.begin(9600);
-  //This initializes the data source to zeros
-  writeValueToEntireDataSource(0);
-  //This updates the data source
-  updateCubeWithDataSource();
-  
-  //initiliazes the counter variable for seeding things temporaly
-  counter = 0;
-  
+   
   //makes the array we are using to address the bits.
   makeData();
-  
+   
   //The latch pin used to update the shift registers
   pinMode(latchPin, OUTPUT);
   //The clock pin pulses when new data is fed to the shift register
@@ -62,7 +55,14 @@ void setup() {
   pinMode(ground2, OUTPUT);
   pinMode(ground3, OUTPUT);
   pinMode(ground4, OUTPUT);
-
+  
+  //This initializes the data source to zeros
+  writeValueToEntireDataSource(0);
+  //This updates the data source
+  updateCubeWithDataSource();
+  
+  //initiliazes the counter variable for seeding things temporaly
+  counter = 0;
 }
 
 void loop() {
@@ -212,7 +212,6 @@ void writeLayerToCube(int layer) {
 
 //This is the main function that ensures that the LED cube is kept updated with the datasource
 void updateCubeWithDataSource() {
-  int countForMe = 0;
   for (int k = 0; k < CUBE_SIZE; k++) {
     for (int i = 0; i < CUBE_SIZE; i++) {
       for (int j = 0; j < CUBE_SIZE; j++) {
