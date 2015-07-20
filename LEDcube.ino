@@ -9,6 +9,9 @@ bool dataSource[CUBE_SIZE][CUBE_SIZE][CUBE_SIZE];
 //Stupid variable that counts
 int counter;
 
+//millis timer
+volatile long unsigned int millis_timer;
+
 //Pin connected to ST_CP of 74HC595
 const int latchPin = 8;
 //Pin connected to SH_CP of 74HC595
@@ -33,13 +36,22 @@ int layerAddress[CUBE_SIZE];
 
 
 void setup() {
-  //Set up the timer being used to control the patterns on cube
-  TCCR0B |= (_BV(CS01)| _BV(CS00)); //Set Timer0 prescaling factor
-  TCCR0B &= ~(_BV(CS02));
   
   //Serial monitor for debug
   Serial.begin(9600);
-   
+
+  millis_timer = 0;
+  
+  noInterrupts();           // disable all interrupts
+  TCCR2B = 0;
+  TCCR2A = 0;
+  
+  //Set up the timer being used to control the patterns on cube
+  TCCR2B |= (_BV(CS22)); //Set Timer2 prescaling factor to 64
+  TCCR2B &= ~(_BV(CS20) | _BV(CS21));
+  TIMSK2 |= (_BV(TOIE2));   // enable timer2 overflow interrupt
+  interrupts();             // enable all interrupts
+     
   //makes the array we are using to address the bits.
   makeData();
    
@@ -70,7 +82,7 @@ void loop() {
   //update the cube to be synced to the datasource
   applyPattern(0);
   updateCubeWithDataSource();
-  counter++;
+ // Serial.println(millis_timer);
 }
 
 
@@ -126,16 +138,21 @@ void functionALL() {
 //This function is responsible for changing the state of the current animation that is being displayed on the screen
 //It does this by determining if a set amount of time has occured and incrementing a global counter variable
 void stateChange(int timeInMilliSeconds){
-  if (millis()% timeInMilliSeconds){
+  
+  if (Millis() >= timeInMilliSeconds){
+    millis_timer = millis();
     //increment the state variable
     counter++;
+    millis_timer = 0;
+    
   }
 }
 
 //Unoptimized pattern
 void powerUp() {
   //This changes the state every 300 milliseconds AKA inc counter every 300 milliseconds
-  stateChange(300);
+
+  stateChange(500);
   
   if (counter==0){
     writeValueToEntireDataSource(0);
@@ -267,4 +284,16 @@ void makeData() {
   layerAddress[3] = 5;
 
 }
+
+ISR(TIMER2_OVF_vect)    
+{
+  millis_timer ++;
+  
+}
+unsigned int Millis()
+{
+  int m = millis_timer;
+  return m;
+}
+
 
