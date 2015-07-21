@@ -128,6 +128,15 @@ void makeSquareOnDataSourceLayer(int x1, int x2, int y1, int y2, int z, int valu
     }    
   }
 }
+
+void makeCubeOnDataSourceLayer(int x1, int x2, int y1, int y2, int z1, int z2, int value){
+  for (int i = x1; i < x2; i++) {
+    for (int j = y1; j < y2; j++) {
+      for (int z = z1; z< z2; z++)
+        dataSource[i][j][z] = value;
+  }
+}
+
 void functionALL() {
   writeValueToEntireDataSource(1);
 }
@@ -184,6 +193,47 @@ void powerUp() {
   }  
 }
 
+void rotatingRectangles() {
+  //This changes the state every 300 milliseconds AKA inc counter every 300 milliseconds
+
+  stateChange(500);
+ 
+  if (counter==0){
+    writeValueToEntireDataSource(0);
+    makeCubeOnDataSourceLayer(0,2,0,2,0,CUBE_SIZE,1);
+  }
+  if (counter==1){
+    writeValueToEntireDataSource(0);
+    makeCubeOnDataSourceLayer(1,3,0,2,0,CUBE_SIZE,1);
+  }
+  if (counter==2){
+    writeValueToEntireDataSource(0);
+   makeCubeOnDataSourceLayer(2,4,0,2,0,CUBE_SIZE,1);
+  }
+  if (counter==3){
+    writeValueToEntireDataSource(0);
+    makeCubeOnDataSourceLayer(2,4,1,3,0,CUBE_SIZE,1);
+  }
+  if (counter==4){
+    writeValueToEntireDataSource(0);
+    makeCubeOnDataSourceLayer(2,4,2,4,0,CUBE_SIZE,1);
+  }
+  if (counter==5){
+    writeValueToEntireDataSource(0);
+    makeCubeOnDataSourceLayer(1,3,2,4,0,CUBE_SIZE,1);
+  }
+  if (counter==6){
+    writeValueToEntireDataSource(0);
+    makeCubeOnDataSourceLayer(0,2,2,4,0,CUBE_SIZE,1);
+    
+  if (counter==7){
+    writeValueToEntireDataSource(0);
+    makeCubeOnDataSourceLayer(0,2,1,3,0,CUBE_SIZE,1);
+    
+    //In your last state reset that state counter
+    counter = 0;
+  }  
+}
 void testPattern() {
 
     dataSource[0][0][0]=1;
