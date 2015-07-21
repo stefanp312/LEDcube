@@ -82,10 +82,6 @@ void loop() {
   //update the cube to be synced to the datasource
   applyPattern(0);
   updateCubeWithDataSource();
-<<<<<<< HEAD
- // Serial.println(millis_timer);
-=======
->>>>>>> origin/master
 }
 
 
@@ -139,15 +135,10 @@ void functionALL() {
 //This function is responsible for changing the state of the current animation that is being displayed on the screen
 //It does this by determining if a set amount of time has occured and incrementing a global counter variable
 void stateChange(int timeInMilliSeconds){
-<<<<<<< HEAD
   
-  if (Millis() >= timeInMilliSeconds){
-    millis_timer = millis();
-=======
-  if (millis()-timerStuff>timeInMilliSeconds){
->>>>>>> origin/master
+  if (Millis() >= timeInMilliSeconds){ 
     //increment the state variable
-    timerStuff=millis();
+
     counter++;
     millis_timer = 0;
     
@@ -157,13 +148,9 @@ void stateChange(int timeInMilliSeconds){
 //Unoptimized pattern
 void powerUp() {
   //This changes the state every 300 milliseconds AKA inc counter every 300 milliseconds
-<<<<<<< HEAD
 
   stateChange(500);
-  
-=======
-  stateChange(300);
->>>>>>> origin/master
+ 
   if (counter==0){
     writeValueToEntireDataSource(0);
     makeSquareOnDataSourceLayer(0,CUBE_SIZE,0,CUBE_SIZE,0,1);
