@@ -6,6 +6,7 @@ bool dataSource[CUBE_SIZE][CUBE_SIZE][CUBE_SIZE];
 
 //This value is used for a pattern
 bool writeValue;
+int fakeTime;
 
 //Variables used to track states
 volatile int counter;
@@ -86,6 +87,7 @@ void setup() {
 
   //Value for a pattern
   writeValue = 1;
+  fakeTime=0;
 }
 
 void loop() {
@@ -301,8 +303,8 @@ void testFunction() {
     int x = 0;
     int y = 0;
     int z = 0;
-    x = random(4);
-    y = random(4);
+    x = random(3)+1;
+    y = random(3)+1;
     z = (x + y) % CUBE_SIZE;
     for (int i = 0; i <= x; i++) {
       for (int j = 0; j <= y; j++) {
@@ -319,6 +321,25 @@ void testFunction() {
   }
 }
 
+void testFunctionMore() {
+  stateChange(250);
+  if (counter == 0)
+  {
+    writeValueToEntireDataSource(0);
+    int x = 0;
+    int y = 0;
+    int z = 0;
+    x = random(3)+1;
+    y = random(3)+1;
+    makeSquareOnDataSourceLayer(0, x, 0, y,fakeTime, 1);
+    counter++;
+  }
+  if (counter == 1) {
+  }
+  if (counter == 2) {
+    counter = 0;
+  }
+}
 
 void BlinkyRand() {
   stateChange(350);
