@@ -132,7 +132,7 @@ void applyPattern(int pattern) {
       powerUp();
       break;
     case 1:
-      testPattern();
+      RandomLights();
       break;
     case 2:
       rotatingRectangles();
@@ -141,25 +141,22 @@ void applyPattern(int pattern) {
       lineSweep();
       break;
     case 4:
-      lightCubeFace();
+      testPattern();
       break;
     case 5:
-      rotatingRectanglesTakeTwo();
+      lightCubeFace();
       break;
     case 6:
-      RandomLights();
+      BlinkyRand();
       break;
     case 7:
-      BlinkyRand();
+      testFunction();
       break;
     case 8:
       RandomLightsGrowAndShrink();
       break;
     case 9:
-
-      break;
-    case 10:
-      testFunction();
+      rotatingRectanglesTakeTwo();
       break;
     default:
       count = 0;
