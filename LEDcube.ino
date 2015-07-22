@@ -160,6 +160,9 @@ void applyPattern(int pattern) {
     case 9:
       rotatingRectanglesTakeTwo();
       break;
+    case 10:
+      testFunctionMore();
+      break;
     default:
       count = 0;
       break;
@@ -320,20 +323,26 @@ void testFunction() {
 
 void testFunctionMore() {
   stateChange(250);
-  if (counter == 0)
-  {
-    writeValueToEntireDataSource(0);
-    int x = 0;
-    int y = 0;
-    int z = 0;
-    x = random(3)+1;
-    y = random(3)+1;
-    makeSquareOnDataSourceLayer(0, x, 0, y,fakeTime, 1);
-    counter++;
+  
+  if (counter==0 && fakeTime==0){
+    fakeTime=1;
+    int x = random(3)+1;
+    int y = random(3)+1;
+    
+    for (int i = 0; i < CUBE_SIZE; i++) {
+      for (int j = 0; j < CUBE_SIZE; j++) {
+        for (int k = 0; k <= 2; k++)
+          dataSource[i][j][k+1] = dataSource[i][j][k];
+      }
+    }
+   makeSquareOnDataSourceLayer(0, CUBE_SIZE, 0, CUBE_SIZE,0, 0);
+   makeSquareOnDataSourceLayer(0, x, 0, y,0, 1);
+    
   }
   if (counter == 1) {
   }
   if (counter == 2) {
+    fakeTime = 0;
     counter = 0;
   }
 }
