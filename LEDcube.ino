@@ -93,7 +93,6 @@ void setup() {
 void loop() {
   //update the function being dispayed by the cube
   //update the cube to be synced to the datasource
-  //Serial.println(count);
   applyPattern(count);
 
   updateCubeWithDataSource();
