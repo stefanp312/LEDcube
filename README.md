@@ -3,6 +3,8 @@
 Ever wanted to build a cube of individually addressable LEDs? Well I did. Here's the code that controls the cubes as well as documentation explaining how and why we built things certain ways.
 
 Note that this project was tailored to fit the specifications for a group project at school. We needed to include: timers, a custom millis function, an Arduino, interrupts, and complex hardware.
+
+
 ![](https://github.com/stefanp312/LEDcube/blob/master/imagesForReadMe/Collage.jpg)
 
 ## Prototype
@@ -19,7 +21,7 @@ An iteractive design process was used in order to complete this project. A small
 
 Cube Size: 4x4x4. (Around 10 hours of soldering time)
   
-Part list (quantities bolded): 
+*Part list* (quantities bolded): 
   1. 8-bit Shift Registers [(Part #: 74HC595)](https://www.sparkfun.com/products/733)  **x 2**
   2. Red Diffused LEDs (We bought 70 in case any were broken) **x 64**
   3. Wire/Jumper Cable **LOTS*
@@ -29,13 +31,13 @@ Part list (quantities bolded):
   7. Push Button 
   8. Scrap Wood (One square foot 1/4 inch thick)
   
-Tips:
+*Tips:*
 
-Use scrap wood to make a template for soldering.
+- Use scrap wood to make a template for soldering.
 
-Use Diffused LEDs so the cube seems brighter.
+- Use Diffused LEDs so the cube seems brighter.
 
-Find a shift registers with built-in resistors.
+- Find a shift registers with built-in resistors.
 
 ### The full story
 
@@ -75,35 +77,95 @@ A piece of scrap wood was acquired from the student machine shop so that a templ
 
 A push button was installed on a bread board to be used as an interupt source so that the pattern displayed on the cube could be changed. The reason we chose to use diffused LEDs was that they provided a uniform light from any angle. This would make the cube seem brighter since every LED is seen from a different angle and multiple locations. We chose red because we thought it would look cool in the dark.
 
-Every column of LEDs also has a resistor attached to it so that none of the LEDs burn out. I would recomend finding a shift register with built-in resistors to make the wiring of the cube look nicer.
+Every column of LEDs also has a resistor attached to it so that none of the LEDs burn out. I would recomend finding a shift register with built-in resistors to make the wiring of the cube look nicer. Due to the added complexity of adding another shift register to control which layer would recieve a ground connection, it was decided that we would just use 4 seperate pins to control it.
 
 ## Software Tingz
 
 ### Cliff Notes.
 
-  A 3D array was mapped to the LEDs on the physical cube.
+  - A 3D array was mapped to the LEDs on the physical cube.
   
-  Cube layers updated one by one in quick sucession to give the impression that the entire cube is illuminated.
+  - Uses persitence of vision to light up the cube layer by layer and look normal.
   
-  Patterns were created as various functions which manipulated the 3D matrix.
+  - Patterns were created as various functions which manipulated a 3D matrix.
+  
+  - MVC Design.
   
   
 ### The full story
 
 There are a few functions which seem random and unnecessary but were project requirements. The design I used is similar to the MVC used in iOS. The model is the 3D array which contains the data to be displayed. The view is the physical cube which acts as a sort of display. The controller would then be the update function which is responsible for making sure the cube looks like what the datasources describes.
 
-**Datasource**
-
-
 **Mapping The Cube**
 
-In order to control
+In order to control the LED cube I needed a way to model the cube in code and then update the cube with the data from the model. I used a boolean array with 3 dimensions that represented the X,Y,Z coordinates of an LED on the cube. Now when creating patterns for the cube, only the datasource needed to be modified thus simplifying the pattern making process.
+
+We could only update the cube one layer at a time due to the way the LEDs were wired however this problem solved by using the persistence of human vision. If we updated each layer sucessively and fast enough it would appear to an observer that the entire cube was illuminated at the same time. The only time that this illusion could break down is if the update rate of the cube is decreased.
+
+Thus, I only needed to be able to address 16 LEDs at a time using the shift registers. This meant that would need to shift out 2 bytes of data when updating one layer of the cube. These bytes of data were created by iterating of the datasource and adding values to them from an array made when the Arduino first starts up. Every power of two represents a different LED, when you add them together multple LEDs would light up. The other tricky concept was that the 4x4 face needed to be broken in half and two seperate bytes needed to be shifted into the shifters.
 
 **Update Function**
+```c
+//This is the main function that ensures that the LED cube is kept updated with the datasource
+void updateCubeWithDataSource() {
+  for (int k = 0; k < CUBE_SIZE; k++) {
+    for (int i = 0; i < CUBE_SIZE; i++) {
+      for (int j = 0; j < CUBE_SIZE; j++) {
+        //This loop will go through every value of the dataSource
+        //Check if the value needs to be written to
+        if (dataSource[i][j][k] == 1) {
+          //If it needs to be written to the cube add it to the data
+          //We can add it to the data because each LED is mapped to a power of 2 and we are essentially doing an 'or' operation on what to light up
+          //The check to j is to decide which byte to write to
+          if (j < 2) {
+            data1 = data1 + ledAddress[i][j];
+          }
+          else {
+            data2 = data2 + ledAddress[i][j];
+          }
+        }
+      }
+    }
+    //At this point we have gone through one entire layer and can write that layer to the cube
+    writeLayerToCube(k);
+  }
+}
+```
 
-dasd
+**How To Shift**
 
+```C
+//This function write data to a chosen layer of the cube
+void writeLayerToCube(int layer) {
+  //First we need to drop the latch and clock low
+  //Dropping the latch low makes the shift register take in data
+  //Putting the clock low makes sure that no data is accidentally written to the register.
+  digitalWrite(latchPin, 0);
+  digitalWrite(clockPin, 0);
+
+  //Write a face of data to the cube
+  shiftOut(dataPin, clockPin, MSBFIRST, data2);
+  shiftOut(dataPin, clockPin, MSBFIRST, data1);
+  //Close the latch so it can update
+  digitalWrite(latchPin, 1);
+
+  //Next we need to select the correct layer by picking the right ground
+  //Match the layer value with the correct pin stored in the layerAddress array
+  if (data1 != 0 || data2 != 0) {
+    raiseAllGrounds();
+    digitalWrite(layerAddress[layer], 0);
+  }
+  //Clear the data
+  data1 = 0;
+  data2 = 0;
+}
+```
 **Creating Patterns**
+
+Due to the design of the software designing patterns is quite simple. There exists only the restriction that each state of the animation has the same duration. However different animations can have different durations so it would be technically possible to chain multiple animation functions together in order to have different state durations.
+
+Making an animation consists of calling the *stateChange* function with the duration of each animation frame. Then have a conditional statement with the global variable called *counter* that modifies that datasource in the desired fashion for that frame. The *stateChange* function will automatically iterate the pattern. In the last state of the animation you just need to reset the *counter* variable back to 0.
+
 ```C
 void stateChange(int timeInMilliSeconds) {
   if (Millis() >= timeInMilliSeconds) {
@@ -112,8 +174,23 @@ void stateChange(int timeInMilliSeconds) {
     millis_timer = 0;
   }
 }
+
+void BlinkyRand() {
+  stateChange(350);
+  if (counter == 0) {
+    writeValueToEntireDataSource(0);
+    int x = random(4);
+    int y = random(4);
+    int z = random(4);
+    dataSource[x][y][z] = 1;
+  }
+  if (counter == 1) {
+  }
+  if (counter == 2) {
+    counter = 0;
+  }
+}
 ```
->Special patterns. Using time to map a function to cube
 
 **Custom Millis**
 
