@@ -18,8 +18,6 @@ An iteractive design process was used in order to complete this project. A small
 ## The hardware.
 
 ### Cliff notes:
-
-Cube Size: 4x4x4. (Around 10 hours of soldering time)
   
 *Part list* (quantities bolded): 
   1. 8-bit Shift Registers [(Part #: 74HC595)](https://www.sparkfun.com/products/733)  **x 2**
@@ -33,11 +31,13 @@ Cube Size: 4x4x4. (Around 10 hours of soldering time)
   
 *Tips:*
 
+- Cube Size: 4x4x4 (Expect around 10 hours of soldering time)
+
 - Use scrap wood to make a template for soldering.
 
-- Use Diffused LEDs so the cube seems brighter.
+- Use diffused LEDs so the cube seems brighter.
 
-- Find a shift registers with built-in resistors.
+- Find a shift register that has built-in resistors.
 
 ### The full story
 
@@ -100,9 +100,9 @@ There are a few functions which seem random and unnecessary but were project req
 
 In order to control the LED cube I needed a way to model the cube in code and then update the cube with the data from the model. I used a boolean array with 3 dimensions that represented the X,Y,Z coordinates of an LED on the cube. Now when creating patterns for the cube, only the datasource needed to be modified thus simplifying the pattern making process.
 
-We could only update the cube one layer at a time due to the way the LEDs were wired however this problem solved by using the persistence of human vision. If we updated each layer sucessively and fast enough it would appear to an observer that the entire cube was illuminated at the same time. The only time that this illusion could break down is if the update rate of the cube is decreased.
+I could only update the cube one layer at a time due to the way the LEDs were wired however this problem solved by using the persistence of human vision. If we updated each layer sucessively and fast enough it would appear to an observer that the entire cube was illuminated at the same time. The only time that this illusion could break down is if the update rate of the cube is decreased.
 
-Thus, I only needed to be able to address 16 LEDs at a time using the shift registers. This meant that would need to shift out 2 bytes of data when updating one layer of the cube. These bytes of data were created by iterating of the datasource and adding values to them from an array made when the Arduino first starts up. Every power of two represents a different LED, when you add them together multple LEDs would light up. The other tricky concept was that the 4x4 face needed to be broken in half and two seperate bytes needed to be shifted into the shifters.
+Thus, I only needed to be able to address 16 LEDs at a time using the shift registers. This meant that I would need to shift out 2 bytes of data when updating one layer of the cube. These bytes of data were created by iterating of the datasource and adding values to them from an array made when the Arduino first starts up. Each LED on a face is mapped to a power of two, thus when you add these values together you can illuminate multiple LEDs. The way it works is the first byte gets sent into the first register initially, then when the next bye is shifted out it takes the place of the first byte and pushes it into the second register.
 
 **Update Function**
 ```c
@@ -164,7 +164,7 @@ void writeLayerToCube(int layer) {
 
 Due to the design of the software designing patterns is quite simple. There exists only the restriction that each state of the animation has the same duration. However different animations can have different durations so it would be technically possible to chain multiple animation functions together in order to have different state durations.
 
-Making an animation consists of calling the *stateChange* function with the duration of each animation frame. Then have a conditional statement with the global variable called *counter* that modifies that datasource in the desired fashion for that frame. The *stateChange* function will automatically iterate the pattern. In the last state of the animation you just need to reset the *counter* variable back to 0.
+Making an animation consists of calling the *stateChange* function with the duration of each animation frame. Then you need a conditional statement with the global variable *counter*. Inside that statement you modify the datasource as necessary. The *stateChange* function will automatically increment the counter variable so make sure that in the last state of the animation *counter* is set to 0.
 
 ```C
 void stateChange(int timeInMilliSeconds) {
@@ -194,7 +194,7 @@ void BlinkyRand() {
 
 **Custom Millis**
 
-The built-in millis function was rewritten by tracking the number of overflow interrupted that occur on hardware timer 2 of the Arduino.A timer prescaler value of 64 was used as it brought the duration closest to 1 millisecond. There was some roundoff error which was ignored since no more than a second is being timed. In one second, the maximum possible error is 24 milliseconds which is negligible in this use case.
+The built-in millis function was rewritten by tracking the number of overflow interrupted that occur on hardware timer 2 of the Arduino. A timer prescaler value of 64 was used as it brought the duration closest to 1 millisecond. There was some roundoff error which was ignored since no more than a second is being timed before reseting the timer register. In one second, the maximum possible error is 24 milliseconds which is negligible in this use case.
 
 
 
