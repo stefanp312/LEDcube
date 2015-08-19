@@ -12,7 +12,7 @@ Note that this project was tailored to fit the specifications for a group projec
 An iteractive design process was used in order to complete this project. A smaller prototype cube was first created so that we could familarize ourselves with the assembly process, shift registers and so that software for the cube could be developed concurently to speed up the over all project completion time.
 
 > Baby Chirstmas Cube
-[Photo of 2x2x2]
+![](https://github.com/stefanp312/LEDcube/blob/master/imagesForReadMe/BabyCube.JPG)
 
 
 ## The hardware.
