@@ -9,7 +9,7 @@ Note that this project was tailored to fit the specifications for a group projec
 
 ## Prototype
 
-An iteractive design process was used in order to complete this project. A smaller prototype cube was first created so that we could familarize ourselves with the assembly process, shift registers and so that software for the cube could be developed concurently to speed up the over all project completion time.
+An iteractive design process was used in order to complete this project. A smaller prototype cube was first created so that we could familiarize ourselves with the assembly process, shift registers and so that software for the cube could be developed concurrently to speed up the over all project completion time.
 
 > Baby Chirstmas Cube
 ![](https://github.com/stefanp312/LEDcube/blob/master/imagesForReadMe/BabyCube.JPG)
@@ -58,7 +58,7 @@ x---x---x---x
 > Each "x" represents a column of LEDs which would share a common voltage source (anode).
 >All of these LEDs would share a common ground (cathode).
 
-Going from 64 output pins to 20 is a huge upgrade. However, we could do better. Using two 8-bit shift registers we were able to decrease that number to just 3. We chained the shift registers so that using a clock, data and latch pin we were alble to control 16 outputs.
+Going from 64 output pins to 20 is a huge upgrade. However, we could do better. Using two 8-bit shift registers we were able to decrease that number to just 3. We chained the shift registers so that using a clock, data and latch pin we were able to control 16 outputs.
 
 > Shift registers are a type of integrated circuit (IC) that are used to transform serial data into parallel data. They can be thought of as a storage tank that uses one main pipeline (data pin) to let 1 bit of data per clock cycle (clock pin). When the tank is full (latch pin), the tank releases all the data down multiple pipelines (output pins). 
 
@@ -75,9 +75,9 @@ A piece of scrap wood was acquired from the student machine shop so that a templ
 > 2 hours later!!!
 > ![](https://github.com/stefanp312/LEDcube/blob/master/imagesForReadMe/FinalProduct.jpg)
 
-A push button was installed on a bread board to be used as an interupt source so that the pattern displayed on the cube could be changed. The reason we chose to use diffused LEDs was that they provided a uniform light from any angle. This would make the cube seem brighter since every LED is seen from a different angle and multiple locations. We chose red because we thought it would look cool in the dark.
+A push button was installed on a bread board to be used as an interrupt source so that the pattern displayed on the cube could be changed. The reason we chose to use diffused LEDs was that they provided a uniform light from any angle. This would make the cube seem brighter since every LED is seen from a different angle and multiple locations. We chose red because we thought it would look cool in the dark.
 
-Every column of LEDs also has a resistor attached to it so that none of the LEDs burn out. I would recomend finding a shift register with built-in resistors to make the wiring of the cube look nicer. Due to the added complexity of adding another shift register to control which layer would recieve a ground connection, it was decided that we would just use 4 seperate pins to control it.
+Every column of LEDs also has a resistor attached to it so that none of the LEDs burn out. I would recommend finding a shift register with built-in resistors to make the wiring of the cube look nicer. Due to the added complexity of adding another shift register to control which layer would receive a ground connection, it was decided that we would just use 4 separate pins to control it.
 
 ## Software Tingz
 
@@ -85,7 +85,7 @@ Every column of LEDs also has a resistor attached to it so that none of the LEDs
 
   - A 3D array was mapped to the LEDs on the physical cube.
   
-  - Uses persitence of vision to light up the cube layer by layer and look normal.
+  - Uses persistence of vision to light up the cube layer by layer and look normal.
   
   - Patterns were created as various functions which manipulated a 3D matrix.
   
@@ -100,7 +100,7 @@ There are a few functions which seem random and unnecessary but were project req
 
 In order to control the LED cube I needed a way to model the cube in code and then update the cube with the data from the model. I used a boolean array with 3 dimensions that represented the X,Y,Z coordinates of an LED on the cube. Now when creating patterns for the cube, only the datasource needed to be modified thus simplifying the pattern making process.
 
-I could only update the cube one layer at a time due to the way the LEDs were wired however this problem solved by using the persistence of human vision. If we updated each layer sucessively and fast enough it would appear to an observer that the entire cube was illuminated at the same time. The only time that this illusion could break down is if the update rate of the cube is decreased.
+I could only update the cube one layer at a time due to the way the LEDs were wired however this problem solved by using the persistence of human vision. If we updated each layer successively and fast enough it would appear to an observer that the entire cube was illuminated at the same time. The only time that this illusion could break down is if the update rate of the cube is decreased.
 
 Thus, I only needed to be able to address 16 LEDs at a time using the shift registers. This meant that I would need to shift out 2 bytes of data when updating one layer of the cube. These bytes of data were created by iterating of the datasource and adding values to them from an array made when the Arduino first starts up. Each LED on a face is mapped to a power of two, thus when you add these values together you can illuminate multiple LEDs. The way it works is the first byte gets sent into the first register initially, then when the next bye is shifted out it takes the place of the first byte and pushes it into the second register.
 
@@ -195,6 +195,4 @@ void BlinkyRand() {
 **Custom Millis**
 
 The built-in millis function was rewritten by tracking the number of overflow interrupted that occur on hardware timer 2 of the Arduino. A timer prescaler value of 64 was used as it brought the duration closest to 1 millisecond. There was some roundoff error which was ignored since no more than a second is being timed before reseting the timer register. In one second, the maximum possible error is 24 milliseconds which is negligible in this use case.
-
-
 
